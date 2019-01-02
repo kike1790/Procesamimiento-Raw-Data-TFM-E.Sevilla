@@ -1,0 +1,53 @@
+
+
+##Eliminación de las 15 primeras pbs mediante cutadapt
+
+cutadapt -u 15 -U 15 -q 20 -m -50 
+-o ~/output2/17297_R1trim_cut.fastq 
+-p ~/output2/17297_R2trim_cut.fastq 
+~/DATOS/Archivos_fastq.cip/EGAR00001545907_17297_R1.fastq 
+~/DATOS/Archivos_fastq.cip/EGAR00001545907_17297_R2.fastq 
+--too-short-output ~/DATOS/output2/17297_shortR1_cuti.fastq 
+--too-short-paired-output ~/DATOS/output2/17297_shortR2_cuti.fastq 
+
+##Indexado del genoma de referencia
+$ bwa-0.7.17/bwa index -a bwtsw  Homo_sapiens.GRCh37.dna.primary_assembly.fa > 
+
+##Añadimos identificador de Ilumina
+~bwa-17 enriquesevillaromero$ bwa mem -t 3 
+-R '@RG\tID:'"1545907_17297"'\tLB:'"1545907_17297"'\tSM:'"1545907_17297"'\tPL:ILLUMINA' 
+~/genoma_indexado/Homo_sapiens.GRCh37.dna.primary_assembly.fa 
+~17297_R1trim_cut.fastq  
+~/17297_R2trim_cut.fastq 
+> ~/bwa_all/bwa1545907_17297.sam
+
+
+## Primero generamos el bam
+
+samtools view -S ~/bwa1545906_17296.sam -b -o ~/bwa1545906_17296.bam
+
+## Generamos el Sort e indexado
+
+samtools sort ~/bwa_all/bwa1545906_17296.bam > ~Datos_alineados_sorter.bam/bwa1545906_17296_sort.bam
+
+## Eliminamos duplicados
+samtools rmdup -S  ~/Datos_alineados_sorter.bam/bwa1545906_17296_sort.bam 
+~/Datos_a_s_ND/bwa1545906_17296_sort_ND.bam
+
+## Generamos los indeces
+Samtools index ~ /Datos_alineados_sorter.bam/bwa1545906_17296_sort.bam
+
+## Comprobamos las calidades de las muestras despues del procesamiento
+samtools-1.9 enriquesevillaromero$ samtools 
+flagstat ~/Datos_a_s_ND/bwa1545906_17296_sort_ND.bam >
+~/Datos_a_s_ND/mappingstats.txt
+
+## Generamos el archivo .bed 
+cat /Users/enriquesevillaromero/ICR96_datos/bedfile_n_chr.txt 
+> ~/ICR96_datos/bedfile_n_chr.bed
+
+## Seleccionamos los regiones de captura unicamente.
+bedtools intersect -abam /Users/enriquesevillaromero/DATOS/nd.bam/EGAR00001545906_17296.sort.nd.bam 
+-b /Users/enriquesevillaromero/ICR96_datos/bedfile_n_chr.bed 
+>/Users/enriquesevillaromero/DATOS/intesect_covered.bam/EGAR00001545906_17296_covered.bam 
+
